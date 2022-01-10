@@ -5,15 +5,21 @@ export const loadFiles: Handler = async (rev, next) => {
     const { response, my_fetch, request } = rev;
     const res = await fetch(my_fetch);
     if (!res.ok || !res.body) return next();
-    const lastMod = res.headers.get("last-modified") || (await Deno.stat(new URL(my_fetch))).mtime?.getTime().toString();
-    if (res.headers.get("etag")) {
-      response.header("etag", res.headers.get("etag") || "");
-    } else if (lastMod) {      
+    const lastMod = res.headers.get("last-modified");
+    const etag = res.headers.get("ETag");
+    if (etag) {
+      response.header("ETag", etag);
+    } else if (lastMod) {
       const key = btoa(lastMod);
       response.header("last-modified", lastMod);
-      response.header("etag", `W/"${key}"`);
+      response.header("ETag", `W/"${key}"`);
     }
-    if (request.headers.get("if-none-match") === response.header("etag")) {
+    if (!lastMod && !etag) {
+      const stats = await Deno.stat(new URL(my_fetch));
+      response.header("last-modified", stats.mtime?.toUTCString());
+      response.header("ETag", `W/"${stats.size}-${stats.mtime?.getTime()}"`);
+    }
+    if (request.headers.get("if-none-match") === response.header("ETag")) {
       return response.status(304).send();
     }
     if (request.headers.get("range")) {
