@@ -16,8 +16,10 @@ export const loadFiles: Handler = async (rev, next) => {
     }
     if (!lastMod && !etag) {
       const stats = await Deno.stat(new URL(my_fetch));
-      response.header("last-modified", stats.mtime?.toUTCString());
-      response.header("ETag", `W/"${stats.size}-${stats.mtime?.getTime()}"`);
+      if (stats.mtime) {
+        response.header("last-modified", stats.mtime?.toUTCString());
+        response.header("ETag", `W/"${stats.size}-${stats.mtime?.getTime()}"`);
+      }
     }
     if (request.headers.get("if-none-match") === response.header("ETag")) {
       return response.status(304).send();
