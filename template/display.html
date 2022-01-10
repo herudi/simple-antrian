@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en-US">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="https://unpkg.com/purecss@2.0.6/build/pure-min.css" />
+  <link rel="stylesheet" href="/public/css/style.css" />
+  <title>Simple Antrian</title>
+  <style>
+    .mycenter {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      -webkit-transform: translate(-50%, -50%);
+      transform: translate(-50%, -50%);
+    }
+  </style>
+</head>
+
+<body>
+  <div class="mycenter">
+    <audio id="audio"></audio>
+    <div style="text-align: center;" id="prepare">
+      <p><b>Ini adalah halaman display anda. Silahkan klik lanjutkan.</b></p>
+      <button type="button" class="pure-button pure-button-primary" onclick="onPrepare()">Lanjutkan</button>
+    </div>
+    <div style="text-align: center; display: none;" id="display">
+      <span style="margin: 0px; font-size: 2rem; font-weight: bold;">Antrian</span><br />
+      <span id="no" style="font-size: 10rem; color: #ab0000; font-weight: bold;">0</span><br />
+      <br />
+      <br />
+      <br />
+      <br />
+      <span style="margin: 0px; font-size: 2rem; font-weight: bold;">Konter</span><br />
+      <span id="counter" style="font-size: 6rem; color: #ab0000; font-weight: bold;">0</span>
+    </div>
+  </div>
+  <script>
+    const key = window.location.pathname.replace("/display/", "");
+    const origin = window.location.origin;
+    const no = document.getElementById("no");
+    const prepare = document.getElementById("prepare");
+    const display = document.getElementById("display");
+    const counter = document.getElementById("counter");
+    const audio = document.getElementById("audio");
+    const source = document.getElementById("source");
+    const evtSource = new EventSource("/sse/" + key);
+    const isEndAudio = () => new Promise((ok) => audio.addEventListener("ended", () => {
+      ok(true);
+    }));
+    function onPrepare() {
+      prepare.style.display = 'none';
+      display.style.display = 'block';
+    }
+    async function playAudio(sources) {
+      for (let i = 0; i < sources.length; i++) {
+        audio.src = "./../public/audio/" + sources[i] + ".wav";
+        audio.type = "audio/wav";
+        await audio.play();
+        await isEndAudio();
+      }
+    }
+    evtSource.onmessage = async function (e) {
+      const data = JSON.parse(e.data);
+      no.innerHTML = data.no;
+      counter.innerHTML = data.counter;
+      await playAudio(data.audios);
+    }
+
+  </script>
+</body>
+
+</html>

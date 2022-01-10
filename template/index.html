@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en-US">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="https://unpkg.com/purecss@2.0.6/build/pure-min.css" />
+  <link rel="stylesheet" href="/public/css/style.css" />
+  <title>Simple Antrian</title>
+</head>
+
+<body>
+  <div class="div-center">
+    <div id="my_create_form" style="display: none;">
+      <h1 style="margin-bottom: 2px;">Simple Antrian</h1>
+      <span>Buat simulasi antrian dengan mudah dan cepat.</span>
+      <hr />
+      <form class="pure-form pure-form-stacked" id="display_form">
+        <fieldset>
+          <label for="display">Nama Display (buat se-unik mungkin)</label>
+          <input title="Nama display tidak boleh ada spesial karakter" class="w-100" type="text" id="display"
+            placeholder="Nama display" pattern="^[a-zA-Z0-9]+$" required />
+          <br />
+          <button type="submit" class="pure-button pure-button-primary">Create</button>
+        </fieldset>
+      </form>
+    </div>
+    <div id="my_form" style="display: none;">
+      <h1 style="margin-bottom: 2px;">Simple Antrian</h1>
+      <span>Buat simulasi antrian dengan mudah dan cepat.</span>
+      <hr />
+      <form class="pure-form pure-form-stacked" id="form">
+        <fieldset>
+          <label for="display">Nomor Antrian</label>
+          <input class="w-100" type="number" id="no" placeholder="Nomor antrian" required />
+          <br />
+          <label for="display">Counter/Loket</label>
+          <input class="w-100" type="number" id="counter" placeholder="Nomor counter" required />
+          <br />
+          <button type="submit" class="pure-button button-primary">Submit</button>
+          <br />
+          <br />
+          <br />
+          <br />
+          <span>URL Display Antrian</span>
+          <hr />
+          <a id="url_display"></a>
+          <br />
+          <br />
+          <br />
+          <span>Action</span>
+          <hr />
+          <button type="button" class="pure-button button-error" onclick="logout()">Logout</button>
+        </fieldset>
+      </form>
+    </div>
+  </div>
+  <script>
+    const key = localStorage.getItem("display_antrian");
+    function logout() {
+      localStorage.removeItem("display_antrian")
+      setTimeout(() => {
+        window.location.reload();
+      }, 300)
+    }
+    if (key) {
+      const myForm = document.getElementById("my_form");
+      myForm.style.display = 'block';
+      const urlDisplay = document.getElementById("url_display");
+      urlDisplay.innerHTML = window.location.origin + "/display/" + key;
+      urlDisplay.href = window.location.origin + "/display/" + key;
+      urlDisplay.target = "_blank";
+      const no = document.getElementById("no");
+      const counter = document.getElementById("counter");
+      const form = document.getElementById("form");
+      form.onsubmit = function (e) {
+        e.preventDefault();
+        fetch("./send/" + key, {
+          method: "POST",
+          body: JSON.stringify({
+            no: no.value,
+            counter: counter.value
+          })
+        })
+          .catch(err => {
+            err.json().then(data => {
+              alert(data.message)
+            })
+          })
+      }
+    } else {
+      const myForm = document.getElementById("my_create_form");
+      myForm.style.display = 'block';
+      const form = document.getElementById("display_form");
+      const display = document.getElementById("display");
+      form.onsubmit = function (e) {
+        e.preventDefault();
+        localStorage.setItem("display_antrian", display.value);
+        setTimeout(() => {
+          window.location.reload();
+        }, 500)
+      }
+    }
+
+  </script>
+</body>
+
+</html>
