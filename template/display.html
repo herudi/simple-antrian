@@ -6,7 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="icon" href="data:,">
   <link rel="stylesheet" href="https://unpkg.com/purecss@2.0.6/build/pure-min.css" />
-  <link rel="stylesheet" href="/public/css/style.css" />
+  <link rel="stylesheet" href="/css/style.css" />
   <title>Simple Antrian</title>
   <style>
     .mycenter {
@@ -56,7 +56,7 @@
     }
     async function playAudio(sources) {
       for (let i = 0; i < sources.length; i++) {
-        audio.src = "./../public/audio/" + sources[i] + ".wav";
+        audio.src = "./../audio/" + sources[i] + ".wav";
         audio.type = "audio/wav";
         await audio.play();
         await isEndAudio();

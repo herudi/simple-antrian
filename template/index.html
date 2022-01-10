@@ -6,7 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="icon" href="data:,">
   <link rel="stylesheet" href="https://unpkg.com/purecss@2.0.6/build/pure-min.css" />
-  <link rel="stylesheet" href="/public/css/style.css" />
+  <link rel="stylesheet" href="/css/style.css" />
   <title>Simple Antrian</title>
 </head>
 
@@ -83,6 +83,10 @@
             counter: counter.value
           })
         })
+          .then(data => {
+            if (!data.ok) throw data;
+            return data.json();
+          })
           .catch(err => {
             err.json().then(data => {
               alert(data.message)

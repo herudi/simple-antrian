@@ -1,14 +1,19 @@
 import { NHttp } from "./deps.ts";
 import getAudios from "./get_audio.ts";
-import { loadAssets, loadTemplate } from "./load_files.ts";
+import { loadFiles } from "./load_files.ts";
 
 const app = new NHttp();
 
-app.get("/", async (rev) => {
-  return await loadTemplate(rev, "/index.html");
+const PUBLIC = new URL("public", import.meta.url).href;
+const TEMPLATE = new URL("template", import.meta.url).href;
+
+app.get("/", async (rev, next) => {
+  rev.my_fetch = TEMPLATE + "/index.html";
+  return await loadFiles(rev, next);
 });
-app.get("/display/:key", async (rev) => {
-  return await loadTemplate(rev, "/display.html");
+app.get("/display/:key", async (rev, next) => {
+  rev.my_fetch = TEMPLATE + "/display.html";
+  return await loadFiles(rev, next);
 });
 
 app.get("/sse/:key", ({ response, params }) => {
@@ -31,9 +36,12 @@ app.get("/sse/:key", ({ response, params }) => {
   }).send(stream.pipeThrough(new TextEncoderStream()));
 });
 
-app.post("/send/:key", ({ body, response, params }) => {
+app.post("/send/:key", ({ body, response, params }, next) => {
   const channel = new BroadcastChannel(params.key);
   const { no, counter } = body;
+  if (parseInt(no) > 1000) {
+    return next(new Error('maaf, suara hanya sampe 999'));
+  }
   const counters = counter ? [ "counter", ...getAudios(counter) ] : [];
   channel.postMessage({
     no,
@@ -43,6 +51,9 @@ app.post("/send/:key", ({ body, response, params }) => {
   return response.status(201).send({ message: "success", status: 201 })
 });
 
-app.get("*", loadAssets);
+app.get("*", async (rev, next) => {
+  rev.my_fetch = PUBLIC + rev.url;
+  return await loadFiles(rev, next);
+});
 
 app.listen(8080);

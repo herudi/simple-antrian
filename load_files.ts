@@ -1,46 +1,31 @@
-import { Handler, RequestEvent } from "./deps.ts";
+import { Handler, mime, readAll, readerFromStreamReader } from "./deps.ts";
 
-const base_template = "./template";
-const cType = {
-  "css": "text/css; charset=utf-8",
-  "wav": "audio/wav",
-  "js": "application/javascript"
-} as Record<string, string>;
-
-export const loadTemplate = async ({ response, request }: RequestEvent, path: string) => {
-  const pathfile = base_template + path;
+export const loadFiles: Handler = async (rev, next) => {
   try {
-    const stats = await Deno.stat(pathfile);
-    response.type("text/html; charset=utf-8");
-    if (stats.mtime) {
-      response.header("Last-Modified", stats.mtime.toUTCString());
+    const { response, my_fetch, request } = rev;
+    const res = await fetch(my_fetch);
+    if (!res.ok || !res.body) return next();
+    const lastMod = res.headers.get("last-modified") || (await Deno.stat(new URL(my_fetch))).mtime?.getTime().toString();
+    if (res.headers.get("ETag")) {
+      response.header("ETag", res.headers.get("ETag") || "");
+    } else if (lastMod) {      
+      const key = btoa(lastMod);
+      response.header("last-modified", lastMod);
+      response.header("ETag", `W/"${key}"`);
     }
-    response.header("ETag", `W/"${stats.size}-${stats.mtime?.getTime()}"`);
     if (request.headers.get("if-none-match") === response.header("ETag")) {
       return response.status(304).send();
     }
-    let body = await Deno.readTextFile(pathfile);
-    return response.send(body);
-  } catch (err) {
-    return response.status(err.status || 500).send(err.message || 'Something went wrong');
-  }
-};
-
-export const loadAssets: Handler = async ({ response, request, url, path }, next) => {
-  try {
-    const pathfile = "." + path;
-    const stats = await Deno.stat("." + url);
-    response.type(cType[pathfile.substring(pathfile.lastIndexOf(".") + 1)]);
-    if (stats.mtime) {
-      response.header("Last-Modified", stats.mtime.toUTCString());
+    if (request.headers.get("range")) {
+      response.header("Accept-Ranges", "bytes");
     }
-    response.header("ETag", `W/"${stats.size}-${stats.mtime?.getTime()}"`);
-    if (request.headers.get("if-none-match") === response.header("ETag")) {
-      return response.status(304).send();
-    }
-    const body = await Deno.readFile(pathfile);
+    const ext = my_fetch.substring(my_fetch.lastIndexOf(".") + 1);
+    response.header("Content-Type", mime.getType(ext.split("?")[0]));
+    const reader = readerFromStreamReader(res.body.getReader());
+    const body = await readAll(reader);
+    response.header("x-powered-by", "NHttp Deno");
     return response.send(body);
-  } catch (err) {
+  } catch (error) {
     return next();
   }
-};
+}
