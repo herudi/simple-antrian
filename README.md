@@ -1,7 +1,7 @@
 # Simple Antrian
 Aplikasi antrian simple lengkap dengan suara. dibuat dengan menggunakan [Deno](https://deno.land).
 
-[![Deploy](https://deno.com/deno-deploy-button.svg)](https://raw.githubusercontent.com/herudi/simple-antrian/master/server.ts)
+[![Deploy](https://deno.com/deno-deploy-button.svg)](https://dash.deno.com/new?url=https://raw.githubusercontent.com/herudi/simple-antrian/master/server.ts)
 
 
 ## Requirement
