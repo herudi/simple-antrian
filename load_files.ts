@@ -7,6 +7,7 @@ export const loadFiles: Handler = async (rev, next) => {
     if (!res.ok || !res.body) return next();
     const lastMod = res.headers.get("last-modified");
     const etag = res.headers.get("ETag");
+    Object.fromEntries(res.headers.entries())
     if (etag) {
       response.header("ETag", etag);
     } else if (lastMod) {
