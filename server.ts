@@ -5,6 +5,7 @@ import { loadFiles } from "./load_files.ts";
 const app = new NHttp();
 
 const PUBLIC = new URL("public", import.meta.url).href;
+const AUDIO = new URL("public/audio", import.meta.url).href;
 const TEMPLATE = new URL("template", import.meta.url).href;
 
 app.get("/", async (rev, next) => {
@@ -14,7 +15,7 @@ app.get("/", async (rev, next) => {
 
 app.get("/list-audio", async () => {
   const list = [] as string[];
-  for await (const dirEntry of Deno.readDir('./public/audio')) {
+  for await (const dirEntry of Deno.readDir(new URL(AUDIO))) {
     list.push("./../audio/" + dirEntry.name);
   }
   return list;

@@ -64,6 +64,7 @@
       status = true;
       try {
         const res = await fetch("./../list-audio");
+        if (!res.ok) throw new Error("error list");
         const names = await res.json();
         for (let i = 0; i < names.length; i++) {
           try {
