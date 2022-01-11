@@ -1,16 +1,17 @@
-import { NHttp, staticFiles } from "./deps.ts";
+import { NHttp } from "./deps.ts";
 import getAudios from "./get_audio.ts";
+import getFiles from "./get_files.ts";
 
 const app = new NHttp();
 
-app.use(staticFiles("public"));
-
-app.get("/", async () => {
-  return await Deno.readTextFile("./template/index.html");
+app.get("/", async (rev, next) => {
+  rev.path_file = "./template/index.html";
+  return await getFiles(rev, next);
 });
 
-app.get("/display/:key", async () => {
-  return await Deno.readTextFile("./template/display.html");
+app.get("/display/:key", async (rev, next) => {
+  rev.path_file = "./template/display.html";
+  return await getFiles(rev, next);
 });
 
 app.get("/sse/:key", ({ response, params }) => {
@@ -47,5 +48,7 @@ app.post("/send/:key", ({ body, response, params }, next) => {
   });
   return response.status(201).send({ message: "success", status: 201 })
 });
+
+app.get("*", getFiles);
 
 app.listen(8080);
