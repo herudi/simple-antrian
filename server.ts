@@ -1,22 +1,16 @@
-import { NHttp } from "./deps.ts";
-import { getAudios, list_audio } from "./get_audio.ts";
-import { loadFiles } from "./load_files.ts";
+import { NHttp, staticFiles } from "./deps.ts";
+import getAudios from "./get_audio.ts";
 
 const app = new NHttp();
 
-const PUBLIC = new URL("public", import.meta.url).href;
-const TEMPLATE = new URL("template", import.meta.url).href;
+app.use(staticFiles("public"));
 
-app.get("/", async (rev, next) => {
-  rev.my_fetch = TEMPLATE + "/index.html";
-  return await loadFiles(rev, next);
+app.get("/", async () => {
+  return await Deno.readTextFile("./template/index.html");
 });
 
-app.get("/list-audio", () => list_audio);
-
-app.get("/display/:key", async (rev, next) => {
-  rev.my_fetch = TEMPLATE + "/display.html";
-  return await loadFiles(rev, next);
+app.get("/display/:key", async () => {
+  return await Deno.readTextFile("./template/display.html");
 });
 
 app.get("/sse/:key", ({ response, params }) => {
@@ -52,11 +46,6 @@ app.post("/send/:key", ({ body, response, params }, next) => {
     audios: ["in", "antrian", ...getAudios(no), ...counters]
   });
   return response.status(201).send({ message: "success", status: 201 })
-});
-
-app.get("*", async (rev, next) => {
-  rev.my_fetch = PUBLIC + rev.url;
-  return await loadFiles(rev, next);
 });
 
 app.listen(8080);
