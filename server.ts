@@ -11,6 +11,15 @@ app.get("/", async (rev, next) => {
   rev.my_fetch = TEMPLATE + "/index.html";
   return await loadFiles(rev, next);
 });
+
+app.get("/list-audio", async () => {
+  const list = [] as string[];
+  for await (const dirEntry of Deno.readDir('./public/audio')) {
+    list.push("./../audio/" + dirEntry.name);
+  }
+  return list;
+});
+
 app.get("/display/:key", async (rev, next) => {
   rev.my_fetch = TEMPLATE + "/display.html";
   return await loadFiles(rev, next);
@@ -42,11 +51,11 @@ app.post("/send/:key", ({ body, response, params }, next) => {
   if (parseInt(no) > 1000) {
     return next(new Error('maaf, suara hanya sampe 999'));
   }
-  const counters = counter ? [ "counter", ...getAudios(counter) ] : [];
+  const counters = counter ? ["counter", ...getAudios(counter)] : [];
   channel.postMessage({
     no,
     counter,
-    audios: [ "in", "antrian", ...getAudios(no), ...counters]
+    audios: ["in", "antrian", ...getAudios(no), ...counters]
   });
   return response.status(201).send({ message: "success", status: 201 })
 });

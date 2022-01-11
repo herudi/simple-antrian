@@ -7,6 +7,7 @@
   <link rel="icon" href="data:,">
   <link rel="stylesheet" href="https://unpkg.com/purecss@2.0.6/build/pure-min.css" />
   <link rel="stylesheet" href="/css/style.css" />
+  <link rel="stylesheet" href="/css/loading.css" />
   <title>Simple Antrian</title>
   <style>
     .mycenter {
@@ -20,6 +21,12 @@
 </head>
 
 <body>
+  <div id="loading" class="center-div-loading" style="display: none;">
+    <div class="linear-progress-material">
+      <div class="bar bar1"></div>
+      <div class="bar bar2"></div>
+    </div>
+  </div>
   <div class="mycenter">
     <audio id="audio"></audio>
     <div style="text-align: center;" id="prepare">
@@ -39,7 +46,9 @@
   </div>
   <script>
     const key = window.location.pathname.replace("/display/", "");
+    const cache = localStorage.getItem("cache_audio_antrian");
     const origin = window.location.origin;
+    const load = document.getElementById("loading");
     const no = document.getElementById("no");
     const prepare = document.getElementById("prepare");
     const display = document.getElementById("display");
@@ -50,7 +59,30 @@
     const isEndAudio = () => new Promise((ok) => audio.addEventListener("ended", () => {
       ok(true);
     }));
-    function onPrepare() {
+    async function cacheAudio() {
+      load.style.display = 'block';
+      status = true;
+      try {
+        const res = await fetch("./../list-audio");
+        const names = await res.json();
+        for (let i = 0; i < names.length; i++) {
+          try {
+            await fetch(names[i]);
+          } catch (_e) {
+            status = false;
+            break;
+          }
+        }
+      } catch (err) {
+        status = false;
+      }
+      if (status) localStorage.setItem("cache_audio_antrian", "1");
+      load.style.display = 'none';
+    }
+    async function onPrepare() {
+      if (!cache) {
+        await cacheAudio();
+      }
       prepare.style.display = 'none';
       display.style.display = 'block';
     }
