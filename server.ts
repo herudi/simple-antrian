@@ -1,6 +1,6 @@
 import { NHttp } from "./deps.ts";
 import getAudios from "./get_audio.ts";
-import getFiles from "./get_files.ts";
+import { getFiles, listFiles } from "./get_files.ts";
 
 const app = new NHttp();
 
@@ -48,6 +48,8 @@ app.post("/send/:key", ({ body, response, params }, next) => {
   });
   return response.status(201).send({ message: "success", status: 201 })
 });
+
+app.get("/list-audios", _ => listFiles);
 
 app.get("*", getFiles);
 

@@ -16,15 +16,42 @@
       -webkit-transform: translate(-50%, -50%);
       transform: translate(-50%, -50%);
     }
+
+    .loading {
+      display: inline-block;
+      width: 50px;
+      height: 50px;
+      border: 3px solid rgba(148, 148, 148, 0.3);
+      border-radius: 50%;
+      border-top-color: rgb(10, 10, 10);
+      animation: spin 1s ease-in-out infinite;
+      -webkit-animation: spin 1s ease-in-out infinite;
+    }
+
+    @keyframes spin {
+      to {
+        -webkit-transform: rotate(360deg);
+      }
+    }
+
+    @-webkit-keyframes spin {
+      to {
+        -webkit-transform: rotate(360deg);
+      }
+    }
   </style>
 </head>
 
 <body>
   <div class="mycenter">
-    <audio id="audio"></audio>
+    <div style="text-align: center; display: none;" id="loading">
+      <div class="loading"></div>
+      <h4><b>mohon tunggu dengan menyiapkan audio...</b></h4>
+    </div>
     <div style="text-align: center;" id="prepare">
-      <p><b>Ini adalah halaman display anda. Silahkan klik lanjutkan.</b></p>
-      <button type="button" class="pure-button pure-button-primary" onclick="onPrepare()">Lanjutkan</button>
+      <p><b>Ini adalah halaman display anda. Silahkan pilih opsi.</b></p>
+      <button type="button" class="pure-button button-primary" onclick="onPrepare()">Lanjutkan</button>
+      <button type="button" class="pure-button button-warning" onclick="cacheAudio()">Download Audio</button>
     </div>
     <div style="text-align: center; display: none;" id="display">
       <span style="margin: 0px; font-size: 2rem; font-weight: bold;">Antrian</span><br />
@@ -42,31 +69,62 @@
     const origin = window.location.origin;
     const no = document.getElementById("no");
     const prepare = document.getElementById("prepare");
+    const loading = document.getElementById("loading");
     const display = document.getElementById("display");
     const counter = document.getElementById("counter");
-    const audio = document.getElementById("audio");
-    const source = document.getElementById("source");
     const evtSource = new EventSource("/sse/" + key);
-    const isEndAudio = () => new Promise((ok) => audio.addEventListener("ended", () => {
-      ok(true);
-    }));
+    window.AudioContext = window.AudioContext || window.webkitAudioContext;
+    async function cacheAudio() {
+      const cache = await caches.open('audio-antrian-cache');
+      try {
+        loading.style.display = 'block';
+        prepare.style.display = 'none';
+        const sources = await fetch("./../list-audios").then(r => r.json());
+        for (let i = 0; i < sources.length; i++) {
+          const url = sources[i];
+          let res = await cache.match(url);
+          if (!res) {
+            await cache.add(url);
+          }
+        }
+        loading.style.display = 'none';
+        display.style.display = 'block';
+      } catch (err) {
+        console.log(err);
+      }
+    }
+    async function play(sources) {
+      const context = new AudioContext();
+      const cache = await caches.open('audio-antrian-cache');
+      for (let i = 0; i < sources.length; i++) {
+        const url = sources[i];
+        try {
+          let res = await cache.match(url);
+          if (!res) {
+            await cache.add(url);
+            res = await cache.match(url);
+          }
+          const buf = await res.arrayBuffer();
+          const source = context.createBufferSource();
+          const end = () => new Promise((ok) => { source.onended = ok });
+          source.buffer = await context.decodeAudioData(buf);
+          source.connect(context.destination);
+          source.start();
+          await end();
+        } catch (err) {
+          console.error(err);
+        }
+      }
+    }
     function onPrepare() {
       prepare.style.display = 'none';
       display.style.display = 'block';
-    }
-    async function playAudio(sources) {
-      for (let i = 0; i < sources.length; i++) {
-        audio.src = "./../audio/" + sources[i] + ".wav";
-        audio.type = "audio/wav";
-        await audio.play();
-        await isEndAudio();
-      }
     }
     evtSource.onmessage = async function (e) {
       const data = JSON.parse(e.data);
       no.innerHTML = data.no;
       counter.innerHTML = data.counter;
-      await playAudio(data.audios);
+      await play(data.audios.map(el => "./../audio/" + el + ".wav"));
     }
 
   </script>
