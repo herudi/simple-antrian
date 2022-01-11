@@ -90,7 +90,7 @@
         loading.style.display = 'none';
         display.style.display = 'block';
       } catch (err) {
-        console.log(err);
+        alert(err.message || "Error Network");
       }
     }
     async function play(sources) {
