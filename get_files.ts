@@ -11,18 +11,6 @@ export const getFiles: Handler = async (rev, next) => {
     response.header("content-type", mime.getType(ext));
     response.header("Last-Modified", (stats.mtime || date).toUTCString());
     response.header("ETag", `W/"${stats.size}-${(stats.mtime || date).getTime()}"`);
-    if (request.headers.get("range")) {
-      response.status(206);
-      const start = 0;
-      const end = stats.size - 1;
-      if (start >= stats.size || end >= stats.size) {
-        response.header("Content-Range", `bytes */${stats.size}`);
-        return response.send();
-      }
-      response.header("Content-Range", `bytes ${start}-${end}/${stats.size}`);
-      response.header("Content-Length", (end - start + 1).toString());
-      response.header("Accept-Ranges", "bytes");
-    }
     if (request.headers.get("if-none-match") === response.header("ETag")) {
       return response.status(304).send();
     }
