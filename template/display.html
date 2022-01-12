@@ -6,128 +6,58 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="icon" href="data:,">
   <link rel="stylesheet" href="https://unpkg.com/purecss@2.0.6/build/pure-min.css" />
-  <link rel="stylesheet" href="/css/style.css" />
+  <link rel="stylesheet" href="/css/style.css?v=1" />
+  <link rel="stylesheet" href="/css/display.css?v=1" />
   <title>Simple Antrian</title>
-  <style>
-    .mycenter {
-      position: absolute;
-      left: 50%;
-      top: 50%;
-      -webkit-transform: translate(-50%, -50%);
-      transform: translate(-50%, -50%);
-    }
-
-    .loading {
-      display: inline-block;
-      width: 50px;
-      height: 50px;
-      border: 3px solid rgba(148, 148, 148, 0.3);
-      border-radius: 50%;
-      border-top-color: rgb(10, 10, 10);
-      animation: spin 1s ease-in-out infinite;
-      -webkit-animation: spin 1s ease-in-out infinite;
-    }
-
-    @keyframes spin {
-      to {
-        -webkit-transform: rotate(360deg);
-      }
-    }
-
-    @-webkit-keyframes spin {
-      to {
-        -webkit-transform: rotate(360deg);
-      }
-    }
-  </style>
 </head>
 
 <body>
-  <div class="mycenter">
-    <div style="text-align: center; display: none;" id="loading">
+  <div>
+    <div style="text-align: center; display: none;" id="loading" class="mycenter">
       <div class="loading"></div>
       <h4><b>mohon tunggu sedang menyiapkan audio...</b></h4>
     </div>
-    <div style="text-align: center;" id="prepare">
-      <p><b>Ini adalah halaman display anda. Silahkan pilih opsi.</b></p>
-      <button type="button" class="pure-button button-primary" onclick="onPrepare()">Lanjutkan</button>
-      <button type="button" class="pure-button button-warning" onclick="cacheAudio()">Download Audio</button>
+    <div id="prepare" class="div-center">
+      <h1>Halaman Display</h1>
+      <form class="pure-form pure-form-stacked" id="form">
+        <fieldset>
+          <label for="display">Masukan Nama Display</label>
+          <input class="w-100" type="text" id="txt_display" placeholder="Nama display" required />
+          <br />
+          <button type="submit" class="pure-button button-primary">Mulai</button>
+          <button type="button" class="pure-button button-warning" onclick="cacheAudio()">Download Audio</button>
+        </fieldset>
+      </form>
     </div>
-    <div style="text-align: center; display: none;" id="display">
-      <span style="margin: 0px; font-size: 2rem; font-weight: bold;">Antrian</span><br />
-      <span id="no" style="font-size: 10rem; color: #ab0000; font-weight: bold;">0</span><br />
-      <br />
-      <br />
-      <br />
-      <br />
-      <span style="margin: 0px; font-size: 2rem; font-weight: bold;">Konter</span><br />
-      <span id="counter" style="font-size: 6rem; color: #ab0000; font-weight: bold;">0</span>
+    <div style="display: none;" id="display">
+      <div class="title-div" style="color: white; font-size: 2rem;">
+        <span id="MyClockDisplay" class="title-text" onload="showTime()"></span>
+      </div>
+      <div class="pure-g">
+        <div class="pure-u-17-24">
+          <div style="height: calc(100vh - 60px - 20px); padding: 20px;">
+            <div class="frame-1" style="height: 13vh; margin-bottom: 20px;">
+              <h1 class="title-text" style="color: #a11010; font-size: 4rem;">ANTRIAN</h1>
+            </div>
+            <div class="frame-1" style="height: calc(100vh - 35vh - 100px); margin-bottom: 20px;">
+              <h1 id="no" class="title-text" style="color: #a11010; font-size: 15rem;">-</h1>
+            </div>
+            <div class="frame-1" style="height: 13vh; margin-bottom: 20px;">
+              <h1 class="title-text" style="color: #a11010; font-size: 4rem;">LOKET : <span id="counter">-</span></h1>
+            </div>
+          </div>
+        </div>
+        <div class="pure-u-7-24">
+          <div style="height: calc(100vh - 60px - 20px); padding: 20px;" id="last">
+            <div class="frame-last">
+              <h4 class="text-last">LOKET - : -</h4>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
-  <script>
-    const key = window.location.pathname.replace("/display/", "");
-    const origin = window.location.origin;
-    const no = document.getElementById("no");
-    const prepare = document.getElementById("prepare");
-    const loading = document.getElementById("loading");
-    const display = document.getElementById("display");
-    const counter = document.getElementById("counter");
-    const evtSource = new EventSource("/sse/" + key);
-    window.AudioContext = window.AudioContext || window.webkitAudioContext;
-    async function cacheAudio() {
-      const cache = await caches.open('audio-antrian-cache');
-      try {
-        loading.style.display = 'block';
-        prepare.style.display = 'none';
-        const sources = await fetch("./../list-audios").then(r => r.json());
-        for (let i = 0; i < sources.length; i++) {
-          const url = sources[i];
-          let res = await cache.match(url);
-          if (!res) {
-            await cache.add(url);
-          }
-        }
-        loading.style.display = 'none';
-        display.style.display = 'block';
-      } catch (err) {
-        alert(err.message || "Error Network");
-      }
-    }
-    async function play(sources) {
-      const context = new AudioContext();
-      const cache = await caches.open('audio-antrian-cache');
-      for (let i = 0; i < sources.length; i++) {
-        const url = sources[i];
-        try {
-          let res = await cache.match(url);
-          if (!res) {
-            await cache.add(url);
-            res = await cache.match(url);
-          }
-          const buf = await res.arrayBuffer();
-          const source = context.createBufferSource();
-          const end = () => new Promise((ok) => { source.onended = ok });
-          source.buffer = await context.decodeAudioData(buf);
-          source.connect(context.destination);
-          source.start();
-          await end();
-        } catch (err) {
-          console.error(err);
-        }
-      }
-    }
-    function onPrepare() {
-      prepare.style.display = 'none';
-      display.style.display = 'block';
-    }
-    evtSource.onmessage = async function (e) {
-      const data = JSON.parse(e.data);
-      no.innerHTML = data.no;
-      counter.innerHTML = data.counter;
-      await play(data.audios.map(el => "./../audio/" + el + ".wav"));
-    }
-
-  </script>
+  <script src="/js/display.js?v=1"></script>
 </body>
 
 </html>

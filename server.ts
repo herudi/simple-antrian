@@ -9,7 +9,7 @@ app.get("/", async (rev, next) => {
   return await getFiles(rev, next);
 });
 
-app.get("/display/:key", async (rev, next) => {
+app.get("/display", async (rev, next) => {
   rev.path_file = "./template/display.html";
   return await getFiles(rev, next);
 });
@@ -42,9 +42,13 @@ app.post("/send/:key", ({ body, response, params }, next) => {
   }
   const counters = counter ? ["counter", ...getAudios(counter)] : [];
   channel.postMessage({
-    no,
-    counter,
-    audios: ["in", "antrian", ...getAudios(no), ...counters]
+    key: params.key,
+    type: "display",
+    data: {
+      no,
+      counter,
+      audios: ["in", "antrian", ...getAudios(no), ...counters]
+    }
   });
   return response.status(201).send({ message: "success", status: 201 })
 });

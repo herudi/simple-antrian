@@ -4,8 +4,8 @@ const date = new Date();
 
 export const getFiles: Handler = async (rev, next) => {
   try {
-    const { url, response, request, path_file } = rev;
-    const pathfile = path_file || ("./public" + url);
+    const { path, response, request, path_file } = rev;
+    const pathfile = path_file || ("./public" + path);
     const stats = await Deno.stat(pathfile);
     const ext = pathfile.substring(pathfile.lastIndexOf(".") + 1);
     response.header("content-type", mime.getType(ext));

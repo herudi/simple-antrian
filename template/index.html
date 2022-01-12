@@ -6,7 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="icon" href="data:,">
   <link rel="stylesheet" href="https://unpkg.com/purecss@2.0.6/build/pure-min.css" />
-  <link rel="stylesheet" href="/css/style.css" />
+  <link rel="stylesheet" href="/css/style.css?v=1" />
   <title>Simple Antrian</title>
 </head>
 
@@ -14,7 +14,7 @@
   <div class="div-center">
     <div id="my_create_form" style="display: none;">
       <h1 style="margin-bottom: 2px;">Simple Antrian</h1>
-      <span>Buat simulasi antrian dengan mudah dan cepat. <a href="https://github.com/herudi/simple-antrian" target="_blank">github</a></span>
+      <span>Buat simulasi antrian sederhana. <a href="https://github.com/herudi/simple-antrian" target="_blank">github</a></span>
       <hr />
       <form class="pure-form pure-form-stacked" id="display_form">
         <fieldset>
@@ -28,24 +28,27 @@
     </div>
     <div id="my_form" style="display: none;">
       <h1 style="margin-bottom: 2px;">Simple Antrian</h1>
-      <span>Buat simulasi antrian dengan mudah dan cepat.</span>
+      <span>Buat simulasi antrian sederhana. <a href="https://github.com/herudi/simple-antrian" target="_blank">github</a></span></span>
       <hr />
       <form class="pure-form pure-form-stacked" id="form">
         <fieldset>
           <label for="display">Nomor Antrian</label>
-          <input class="w-100" type="number" id="no" placeholder="Nomor antrian" required />
+          <input class="w-100" type="number" id="no" max="999" min="1" placeholder="Nomor antrian" required />
           <br />
           <label for="display">Counter/Loket</label>
-          <input class="w-100" type="number" id="counter" placeholder="Nomor counter" required />
+          <input class="w-100" type="number" id="counter" max="999" min="1" placeholder="Nomor counter" required />
           <br />
-          <button type="submit" class="pure-button button-primary">Submit</button>
-          <br />
-          <br />
+          <button id="call" type="submit" class="pure-button button-primary">Panggil</button>
           <br />
           <br />
-          <span>URL Display Antrian</span>
+          <br />
+          <br />
+          <span>Info Display Antrian</span>
           <hr />
-          <a id="url_display"></a>
+          Url Display : <a id="url_display"></a>
+          <br/>
+          <br/>
+          Nama Display : <b id="display_name"></b>
           <br />
           <br />
           <br />
@@ -56,58 +59,7 @@
       </form>
     </div>
   </div>
-  <script>
-    const key = localStorage.getItem("display_antrian");
-    function logout() {
-      localStorage.removeItem("display_antrian")
-      setTimeout(() => {
-        window.location.reload();
-      }, 300)
-    }
-    if (key) {
-      const myForm = document.getElementById("my_form");
-      myForm.style.display = 'block';
-      const urlDisplay = document.getElementById("url_display");
-      urlDisplay.innerHTML = window.location.origin + "/display/" + key;
-      urlDisplay.href = window.location.origin + "/display/" + key;
-      urlDisplay.target = "_blank";
-      const no = document.getElementById("no");
-      const counter = document.getElementById("counter");
-      const form = document.getElementById("form");
-      form.onsubmit = function (e) {
-        e.preventDefault();
-        fetch("./send/" + key, {
-          method: "POST",
-          body: JSON.stringify({
-            no: no.value,
-            counter: counter.value
-          })
-        })
-          .then(data => {
-            if (!data.ok) throw data;
-            return data.json();
-          })
-          .catch(err => {
-            err.json().then(data => {
-              alert(data.message)
-            })
-          })
-      }
-    } else {
-      const myForm = document.getElementById("my_create_form");
-      myForm.style.display = 'block';
-      const form = document.getElementById("display_form");
-      const display = document.getElementById("display");
-      form.onsubmit = function (e) {
-        e.preventDefault();
-        localStorage.setItem("display_antrian", display.value);
-        setTimeout(() => {
-          window.location.reload();
-        }, 500)
-      }
-    }
-
-  </script>
+  <script src="/js/home.js?v=1"></script>
 </body>
 
 </html>
