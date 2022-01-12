@@ -59,6 +59,15 @@ app.post("/send/:key", ({ body, response, params }, next) => {
   });
   return response.status(201).send({ message: "success", status: 201 })
 });
+app.post("/reset/:key", ({ response, params }) => {
+  const channel = new BroadcastChannel(params.key);
+  channel.postMessage({
+    key: params.key,
+    type: "reset",
+    data: {}
+  });
+  return response.status(201).send({ message: "success", status: 201 })
+});
 
 app.get("/list-audios", _ => listFiles);
 

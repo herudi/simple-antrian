@@ -8,7 +8,8 @@ const prepare = document.getElementById("prepare");
 const loading = document.getElementById("loading");
 const display = document.getElementById("display");
 const counter = document.getElementById("counter");
-const lastObj = {};
+const my_bar = document.getElementById("my_bar");
+let lastObj = {};
 function onPrepare() {
   prepare.style.display = 'none';
   display.style.display = 'block';
@@ -29,6 +30,9 @@ window.cacheAudio = async () => {
       if (!res) {
         await cache.add(url);
       }
+      const percent = ((100 / sources.length) * (i + 1)).toFixed(0);
+      my_bar.style.width = percent + "%";
+      my_bar.innerHTML = percent + "%";
     }
     loading.style.display = 'none';
     prepare.style.display = 'block';
@@ -84,6 +88,15 @@ form.onsubmit = function (e) {
         const audios = data.audios.map(el => origin + "/public/audio/" + el + ".wav");
         await play(audios);
       }
+    } else if (json.type === "reset") {
+      lastObj = {};
+      no.innerHTML = "-";
+      counter.innerHTML = "-";
+      last.innerHTML = `
+          <div class="frame-last">
+            <h4 class="text-last">LOKET - : -</h4>
+          </div>
+      `;
     }
   }
   onPrepare();

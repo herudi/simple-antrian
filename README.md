@@ -12,6 +12,7 @@ Aplikasi antrian simple dengan suara. dibuat dengan menggunakan [Deno](https://d
 - multi display
 - Nomor antrian dan loket/konter
 - Real time. menggunakan Server Sent Event. bukan interval.
+- Cache audio. (suara load lebih cepat jika di download).
 
 ## Batasan
 

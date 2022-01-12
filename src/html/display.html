@@ -5,7 +5,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="icon" href="data:,">
-  <link rel="stylesheet" href="https://unpkg.com/purecss@2.0.6/build/pure-min.css" />
+  <link rel="stylesheet" href="/public/css/pure.min.css" />
   <link rel="stylesheet" href="/assets/css/style.css?v=2" />
   <link rel="stylesheet" href="/assets/css/display.css?v=2" />
   <title>Simple Antrian</title>
@@ -15,7 +15,10 @@
   <div>
     <div style="text-align: center; display: none;" id="loading" class="mycenter">
       <div class="loading"></div>
-      <h4><b>mohon tunggu sedang menyiapkan audio...</b></h4>
+      <h4><b>mohon tunggu sedang download audio...</b></h4>
+      <div id="my_progress">
+        <div id="my_bar"></div>
+      </div>
     </div>
     <div id="prepare" class="div-center">
       <h1>Halaman Display</h1>
