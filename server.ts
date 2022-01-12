@@ -1,16 +1,23 @@
-import { NHttp } from "./deps.ts";
+import { Handler, NHttp } from "./deps.ts";
 import getAudios from "./get_audio.ts";
 import { getFiles, listFiles } from "./get_files.ts";
 
+const dir = Deno.args.includes("--development") ? "./src" : "./dist";
+
 const app = new NHttp();
 
+const mutateDir: (prefix: string) => Handler = (prefix: string) => (rev, next) => {
+  rev.base_file = prefix;
+  return next();
+}
+
 app.get("/", async (rev, next) => {
-  rev.path_file = "./template/index.html";
+  rev.path_file = "./src/html/index.html";
   return await getFiles(rev, next);
 });
 
 app.get("/display", async (rev, next) => {
-  rev.path_file = "./template/display.html";
+  rev.path_file = "./src/html/display.html";
   return await getFiles(rev, next);
 });
 
@@ -55,6 +62,7 @@ app.post("/send/:key", ({ body, response, params }, next) => {
 
 app.get("/list-audios", _ => listFiles);
 
-app.get("*", getFiles);
+app.get("/public/*", mutateDir("./public"), getFiles);
+app.get("/assets/*", mutateDir(dir), getFiles);
 
 app.listen(8080);

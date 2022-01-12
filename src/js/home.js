@@ -1,5 +1,6 @@
 const key = localStorage.getItem("display_antrian");
-function logout() {
+const origin = window.location.origin;
+window.logout = () => {
   localStorage.removeItem("display_antrian")
   setTimeout(() => {
     window.location.reload();
@@ -11,8 +12,8 @@ if (key) {
   myForm.style.display = 'block';
   const urlDisplay = document.getElementById("url_display");
   const display_name = document.getElementById("display_name");
-  urlDisplay.innerHTML = window.location.origin + "/display";
-  urlDisplay.href = window.location.origin + "/display";
+  urlDisplay.innerHTML = origin + "/display";
+  urlDisplay.href = origin + "/display";
   display_name.innerHTML = key;
   urlDisplay.target = "_blank";
   const no = document.getElementById("no");

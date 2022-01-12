@@ -1,4 +1,5 @@
 const withNol = (no) => Array(Math.max(3 - String(no).length + 1, 0)).join(0) + no;
+const origin = window.location.origin;
 const no = document.getElementById("no");
 const form = document.getElementById("form");
 const txt_display = document.getElementById("txt_display");
@@ -15,12 +16,13 @@ function onPrepare() {
 
 let status = true;
 window.AudioContext = window.AudioContext || window.webkitAudioContext;
-async function cacheAudio() {
+window.cacheAudio = async () => {
   const cache = await caches.open('audio-antrian-cache');
   try {
     loading.style.display = 'block';
     prepare.style.display = 'none';
-    const sources = await fetch("./../list-audios").then(r => r.json());
+    let sources = await fetch(origin + "/list-audios").then(r => r.json());
+    sources = sources.map(el => origin + "/public" + el);
     for (let i = 0; i < sources.length; i++) {
       const url = sources[i];
       let res = await cache.match(url);
@@ -79,7 +81,7 @@ form.onsubmit = function (e) {
           </div>
         `;
         }
-        const audios = data.audios.map(el => "./../audio/" + el + ".wav");
+        const audios = data.audios.map(el => origin + "/public/audio/" + el + ".wav");
         await play(audios);
       }
     }
@@ -92,9 +94,6 @@ function showTime() {
   let h = date.getHours();
   let m = date.getMinutes();
   let s = date.getSeconds();
-  const d = date.getDay();
-  const mon = date.getMonth();
-  const y = date.getFullYear();
   let session = "AM";
   if (h == 0) {
     h = 12;
@@ -113,3 +112,5 @@ function showTime() {
 }
 
 showTime();
+
+window.showTime = showTime;
