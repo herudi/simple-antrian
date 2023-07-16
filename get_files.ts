@@ -2,11 +2,11 @@ import { Handler, mime } from "./deps.ts";
 
 const date = new Date();
 
-export const getFiles: Handler = async (rev, next) => {
+export const getFiles: Handler = (rev, next) => {
   try {
     const { path, response, request, path_file, base_file } = rev;
     const pathfile = path_file || (base_file + path.substring(path.indexOf("/", 2)));
-    const stats = await Deno.stat(pathfile);
+    const stats = Deno.statSync(pathfile);
     const ext = pathfile.substring(pathfile.lastIndexOf(".") + 1);
     response.header("content-type", mime.getType(ext));
     response.header("Last-Modified", (stats.mtime || date).toUTCString());
@@ -15,7 +15,7 @@ export const getFiles: Handler = async (rev, next) => {
       return response.status(304).send();
     }
     response.header("x-powered-by", "NHttp Deno");
-    return await Deno.readFile(pathfile);
+    return Deno.readFileSync(pathfile);
   } catch (error) {
     return next();
   }
